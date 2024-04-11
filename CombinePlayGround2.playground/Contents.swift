@@ -158,6 +158,7 @@ var cancellables = Set<AnyCancellable>()
 publisher.sink { completion in
     switch completion {
     case .finished:
+        print("완료")
         break
     case .failure(let error):
         print("발생한 에러:\(error.localizedDescription)")
@@ -165,5 +166,7 @@ publisher.sink { completion in
 } receiveValue: { value in
     print("Publisher로부터 받은 값:\(value)")
 }.store(in: &cancellables)
+publisher.send(subscription: Subscriptions.empty)
 publisher.send("테스트1")
+publisher.send(completion: .finished)
 
