@@ -170,3 +170,7 @@ publisher.send(subscription: Subscriptions.empty)
 publisher.send("테스트1")
 publisher.send(completion: .finished)
 
+for i in cancellables {
+    i.cancel()
+}
+
