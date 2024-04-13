@@ -7,22 +7,6 @@
 
 import SwiftUI
 
-@MainActor
-@Observable final class SignInEmailViewModel: ObservableObject {
-    
-    var email = ""
-    var password = ""
-    
-    func signIn() async throws {
-        guard !email.isEmpty, !password.isEmpty else {
-            print("No email or password found.")
-            return
-        }
-        
-        let returnedUserData = try await AuthenticationManager.shared.createUser(email: email, password: password)
-        
-    }
-}
 
 struct SignInEmailView: View {
     
@@ -36,6 +20,7 @@ struct SignInEmailView: View {
                 .padding()
                 .background(Color.gray.opacity(0.4))
                 .clipShape(RoundedRectangle(cornerRadius: 10))
+                .textInputAutocapitalization(.never)
             
             SecureField("비밀번호...", text: $vm.password)
                 .padding()
@@ -45,7 +30,37 @@ struct SignInEmailView: View {
             Button(action: {
                 Task {
                     do {
-                        try await vm.signIn()
+                        try await vm.signIn() // 로그인을 한다
+                        showSignInView = false
+                        return
+                    } catch {
+                        print("error:\(error)")
+                    }
+                }
+            }, label: {
+                Text("로그인")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .frame(height: 55)
+                    .frame(maxWidth: .infinity)
+                    .background(.blue)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            })
+            
+            Button(action: {
+                Task {
+                    do {
+                        try await vm.signUp() // 회원가입을 한다
+                        showSignInView = false
+                        return
+                    } catch {
+                        print("error:\(error)")
+                    }
+                    
+                    do {
+                        try await vm.signIn() // 로그인을 한다
+                        showSignInView = false
+                        return
                     } catch {
                         print("error:\(error)")
                     }

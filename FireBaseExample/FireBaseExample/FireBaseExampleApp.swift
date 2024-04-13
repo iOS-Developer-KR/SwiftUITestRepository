@@ -14,6 +14,8 @@ struct FireBaseExampleApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @State private var signInEmailViewModel = SignInEmailViewModel()
     @State private var settingsViewModel = SettingsViewModel()
+    @State private var profileViewModel = ProfileViewModel()
+    
     
     init() {
         // FirebaseApp.configure() // AppDelegate 없이 시작
@@ -27,6 +29,7 @@ struct FireBaseExampleApp: App {
         }
         .environment(signInEmailViewModel)
         .environment(settingsViewModel)
+        .environment(profileViewModel)
     }
 }
 
