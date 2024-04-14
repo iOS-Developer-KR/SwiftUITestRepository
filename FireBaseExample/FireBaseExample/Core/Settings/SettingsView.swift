@@ -61,6 +61,9 @@ struct SettingsView: View {
 #Preview {
     NavigationStack {
         SettingsView(showSignInView: .constant(false))
+            .environment(SignInEmailViewModel())
+            .environment(SettingsViewModel())
+            .environment(ProfileViewModel())
     }
 }
 

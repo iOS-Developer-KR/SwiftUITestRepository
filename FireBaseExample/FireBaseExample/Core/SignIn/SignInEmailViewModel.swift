@@ -31,4 +31,9 @@ import Foundation
         
         let returnedUserData = try await AuthenticationManager.shared.signInUser(email: email, password: password)
     }
+    
+    func signInAnonymous() async throws {
+        let authDataResult = try await AuthenticationManager.shared.signInAnonymous()
+        try await UserManager.shared.createNewUser(user: DBUser(auth: authDataResult))
+    }
 }

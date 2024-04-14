@@ -56,14 +56,6 @@ struct SignInEmailView: View {
                     } catch {
                         print("error:\(error)")
                     }
-                    
-                    do {
-                        try await vm.signIn() // 로그인을 한다
-                        showSignInView = false
-                        return
-                    } catch {
-                        print("error:\(error)")
-                    }
                 }
             }, label: {
                 Text("회원가입")
@@ -83,4 +75,7 @@ struct SignInEmailView: View {
 
 #Preview {
     SignInEmailView(showSignInView: .constant(false))
+        .environment(SignInEmailViewModel())
+        .environment(SettingsViewModel())
+        .environment(ProfileViewModel())
 }

@@ -14,6 +14,26 @@ struct AuthenticationView: View {
     
     var body: some View {
         VStack {
+            
+            Button {
+                Task {
+                    do {
+                        try await vm.signInAnonymous()
+                        showSignInView = false
+                    } catch {
+                        print(error)
+                    }
+                }
+            } label: {
+                Text("익명으로 시작하기")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .frame(height: 55)
+                    .frame(maxWidth: .infinity)
+                    .background(.blue)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+            
             NavigationLink {
                 SignInEmailView(showSignInView: $showSignInView)
             } label: {
@@ -35,5 +55,8 @@ struct AuthenticationView: View {
 #Preview {
     NavigationStack {
         AuthenticationView(showSignInView: .constant(false))
+            .environment(SignInEmailViewModel())
+            .environment(SettingsViewModel())
+            .environment(ProfileViewModel())
     }
 }

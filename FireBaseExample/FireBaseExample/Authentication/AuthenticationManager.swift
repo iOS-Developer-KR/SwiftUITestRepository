@@ -72,3 +72,25 @@ final class AuthenticationManager {
     }
 }
 
+//MARK: 익명 로그인
+
+extension AuthenticationManager {
+    
+    @discardableResult
+    func signInAnonymous() async throws -> AuthDataResultModel {
+        let authDataResult = try await Auth.auth().signInAnonymously()
+        return AuthDataResultModel(user: authDataResult.user)
+    }
+    
+    func linkEmail(email: String, password: String) async throws -> AuthDataResultModel { // 익명 계정을 이메일-비밀번호 로그인으로 영구 계정으로 만들기
+        let credential = EmailAuthProvider.credential(withEmail: email, link: password)
+        
+        guard let user = Auth.auth().currentUser else {
+            throw URLError(.badURL)
+        }
+        
+        let authDataResult = try await user.link(with: credential)
+        return AuthDataResultModel(user: authDataResult.user)
+    }
+}
+

@@ -14,7 +14,8 @@ struct RootView: View {
         ZStack {
             if !showSignView {
                 NavigationStack {
-                    ProfileView(showSignInView: $showSignView)
+                    ProductsView()
+//                    ProfileView(showSignInView: $showSignView)
                 }
             }
         }
@@ -33,4 +34,7 @@ struct RootView: View {
 #Preview {
     RootView()
         .environment(SignInEmailViewModel())
+        .environment(SettingsViewModel())
+        .environment(ProfileViewModel())
+        .environment(ProductsViewModel())
 }
