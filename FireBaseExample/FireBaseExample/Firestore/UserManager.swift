@@ -9,6 +9,7 @@ import Foundation
 import FirebaseFirestore
 import FirebaseFirestoreSwift
 import FirebaseAuth
+import Combine
 
 struct Movie: Codable {
     let id: String
@@ -88,11 +89,23 @@ final class UserManager {
         userCollection.document(userId)
     }
     
+    private func userFavoriteProductCollection(userId: String) -> CollectionReference {
+        userDocument(userId: userId).collection("favorite_products")
+    }
+    
+    private func userFavoriteProductDocument(userId: String, favoriteProductId: String) -> DocumentReference {
+        userFavoriteProductCollection(userId: userId).document(favoriteProductId)
+    }
+    
     private let encoder: Firestore.Encoder = {
         let encoder = Firestore.Encoder()
         encoder.keyEncodingStrategy = .convertToSnakeCase
         return encoder
     }()
+    
+    
+    
+    private var userFavoriteProductsListener: ListenerRegistration? = nil
     
     func createNewUser(user: DBUser) async throws {
         try userDocument(userId: user.userId).setData(from: user, merge: false)
@@ -142,5 +155,111 @@ final class UserManager {
         ]
         
         try await userDocument(userId: userId).updateData(data as [AnyHashable : Any])
+    }
+    
+    func addUserFavoriteProduct(userId: String, productId: Int) async throws {
+        // document()를 실행하면 자동 id가 생성된다
+        let document = userFavoriteProductCollection(userId: userId).document()
+        let documentId = document.documentID
+        
+        let data: [String: Any] = [
+            UserFavoriteProduct.CodingKeys.id.rawValue : documentId,
+            UserFavoriteProduct.CodingKeys.productId.rawValue : productId,
+            UserFavoriteProduct.CodingKeys.dateCreated.rawValue : Timestamp()
+        ]
+        try await document.setData(data, merge: false)
+    }
+    // String을 직접 사용해서 구현하지 않기 때문에 실수로 에러를 만들 일이 없다
+    func removeUserFavoriteProduct(userId: String, favoriteProductId: String) async throws {
+        try await userFavoriteProductDocument(userId: userId, favoriteProductId: favoriteProductId).delete()
+    }
+    
+    func getAllUserFavoriteProducts(userId: String) async throws -> [UserFavoriteProduct] {
+        try await userFavoriteProductCollection(userId: userId).getDocuments(as: UserFavoriteProduct.self)
+    }
+    
+    func removeListenerForAllUserFavoriteProducts() {
+        self.userFavoriteProductsListener?.remove()
+    }
+    
+    func addListenerForAllUserFavoriteProducts(userId: String, completion: @escaping (_ products: [UserFavoriteProduct]) -> Void) {
+        let listener = userFavoriteProductCollection(userId: userId).addSnapshotListener { QuerySnapshot, error in
+            // 컬렉션에 변화가 있을 경우 이 클로저가 실행됩니다.
+            guard let documents = QuerySnapshot?.documents else {
+                print("No documents")
+                return
+            }
+            
+            let products: [UserFavoriteProduct] = documents.compactMap({ try? $0.data(as: UserFavoriteProduct.self) })
+            completion(products)
+
+            // 바뀐 데이터를 확인할 수 있다.
+            QuerySnapshot?.documentChanges.forEach { diff in
+              if (diff.type == .added) {
+                print("New Product: \(diff.document.data())")
+              }
+              if (diff.type == .modified) {
+                print("Modified Product: \(diff.document.data())")
+              }
+              if (diff.type == .removed) {
+                print("Removed Product: \(diff.document.data())")
+              }
+            }
+        }
+        self.userFavoriteProductsListener = listener
+    }
+    
+    // combine을 사용해서 completion을 없앴다
+//    func addListenerForAllUserFavoriteProducts(userId: String) -> AnyPublisher<[UserFavoriteProduct], Error>{
+//        let publisher = PassthroughSubject<[UserFavoriteProduct], Error>()
+//        
+//        self.userFavoriteProductsListener = userFavoriteProductCollection(userId: userId).addSnapshotListener { QuerySnapshot, error in
+//            // 컬렉션에 변화가 있을 경우 이 클로저가 실행됩니다.
+//            guard let documents = QuerySnapshot?.documents else {
+//                print("No documents")
+//                return
+//            }
+//            
+//            let products: [UserFavoriteProduct] = documents.compactMap({ try? $0.data(as: UserFavoriteProduct.self) })
+//            publisher.send(products)
+//        }
+//        return publisher.eraseToAnyPublisher()
+//    }
+    
+    func addListenerForAllUserFavoriteProducts(userId: String) -> AnyPublisher<[UserFavoriteProduct], Error>{
+        let (publisher, listener) = userFavoriteProductCollection(userId: userId)
+            .addSnapshotListener(as: UserFavoriteProduct.self)
+        
+        self.userFavoriteProductsListener = listener
+        return publisher
+    }
+}
+
+
+
+struct UserFavoriteProduct: Codable {
+    let id: String
+    let productId: Int
+    let dateCreated: Date
+    
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "id"
+        case productId = "product_id"
+        case dateCreated = "date_created"
+    }
+    
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.id, forKey: .id)
+        try container.encode(self.productId, forKey: .productId)
+        try container.encode(self.dateCreated, forKey: .dateCreated)
+    }
+    
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(String.self, forKey: .id)
+        self.productId = try container.decode(Int.self, forKey: .productId)
+        self.dateCreated = try container.decode(Date.self, forKey: .dateCreated)
     }
 }

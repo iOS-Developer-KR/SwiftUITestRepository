@@ -16,6 +16,7 @@ struct FireBaseExampleApp: App {
     @State private var settingsViewModel = SettingsViewModel()
     @State private var profileViewModel = ProfileViewModel()
     @State private var productViewModel = ProductsViewModel()
+    @State private var favoriteViewModel = FavoriteViewModel()
     
     
     init() {
@@ -32,6 +33,7 @@ struct FireBaseExampleApp: App {
         .environment(settingsViewModel)
         .environment(profileViewModel)
         .environment(productViewModel)
+        .environment(favoriteViewModel)
     }
 }
 
