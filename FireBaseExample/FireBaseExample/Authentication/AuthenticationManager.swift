@@ -9,12 +9,12 @@ import Foundation
 import FirebaseAuth
 
 struct AuthDataResultModel {
-    let uid: String
+    var uid: String
     let email: String?
     let photoUrl: String?
     
     init(user: User) {
-        self.uid = user.uid
+        self.uid = "0clNDTOXJbTaUxn5TzaKU9QuhYC3"
         self.email = user.email
         self.photoUrl = user.photoURL?.absoluteString
     }
