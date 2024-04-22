@@ -14,9 +14,15 @@ struct CustomTabBarView: View {
     let tabs: [TabBarItem]
     @Binding var selection: TabBarItem
     @Namespace private var namespace
+    @State var localSelection: TabBarItem
     
     var body: some View {
         tabBarVersion2
+            .onChange(of: selection) { oldValue, newValue in
+                withAnimation(.easeInOut) {
+                    localSelection = newValue
+                }
+            }
     }
 }
 
@@ -28,7 +34,7 @@ struct CustomTabBarView: View {
         Spacer()
         CustomTabBarView(tabs: [
             .home, .favorite, .profile
-        ], selection: .constant(tab))
+        ], selection: .constant(tab), localSelection: tab)
     }
 }
 
@@ -41,10 +47,10 @@ extension CustomTabBarView {
             Text(tab.title)
                 .font(.system(size: 10, weight: .semibold, design: .rounded))
         }
-        .foregroundStyle(selection == tab ? tab.color : Color.gray)
+        .foregroundStyle(localSelection == tab ? tab.color : Color.gray)
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity)
-        .background(selection == tab ? tab.color.opacity(0.3) : Color.clear)
+        .background(localSelection == tab ? tab.color.opacity(0.3) : Color.clear)
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
     
@@ -75,12 +81,12 @@ extension CustomTabBarView {
             Text(tab.title)
                 .font(.system(size: 10, weight: .semibold, design: .rounded))
         }
-        .foregroundStyle(selection == tab ? tab.color : Color.gray)
+        .foregroundStyle(localSelection == tab ? tab.color : Color.gray)
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity)
         .background(
             ZStack {
-                if selection == tab {
+                if localSelection == tab {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(tab.color.opacity(0.2))
                         .matchedGeometryEffect(id: "background_rectangle", in: namespace)

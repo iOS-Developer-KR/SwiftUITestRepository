@@ -18,6 +18,8 @@ struct ContentView: View {
     @State private var tabSelection: TabBarItem = .home
     var body: some View {
         CustomTabBarContainerView(selection: $tabSelection) {
+            // 4개의 뷰를 포함하는 ContainerView
+            // .tabBarItem은 각 뷰의 커스텀 modifier로 선택된 화면만 보여주도록 만든다
             Color.blue
                 .tabBarItem(tab: .home, selection: $tabSelection)
             
@@ -26,6 +28,9 @@ struct ContentView: View {
             
             Color.green
                 .tabBarItem(tab: .profile, selection: $tabSelection)
+            
+            Color.orange
+                .tabBarItem(tab: .message, selection: $tabSelection)
         }
     }
 }
